@@ -154,6 +154,5 @@ impl<'a> Style for Text<'a> {
     }
 
     fn apply_style(&mut self) {
-        todo!();
     }
 }

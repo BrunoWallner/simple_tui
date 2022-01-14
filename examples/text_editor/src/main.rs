@@ -8,7 +8,7 @@ use simple_tui::{
     ui::{
         style::{StyleSheet, Style, Length},
         screen::Screen,
-        widget::{Widgets, text::Text, container::{Container, ContainerKind}, input::Input, button::Button}
+        widget::{Widgets, container::{Container, ContainerKind}, input::Input, button::Button}
     },
     application::Application,
 };
