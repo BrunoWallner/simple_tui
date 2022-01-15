@@ -7,20 +7,18 @@ use std::io::{stdout, Result, Stdout, Write};
 use crate::{Position, Size};
 use crate::ui::style::Style;
 
-use std::marker::PhantomData;
 
-pub struct Screen<'a> {
+pub struct Screen {
     stdout: Stdout,
     pub width: usize,
     pub height: usize,
     pub canvas: Vec<Vec<char>>,
-    pub container: Container<'a>,
+    pub container: Container,
     pub messages: Vec<Vec<String>>,
     previos_lines: Vec<String>, // for render optimisation
-    _phantom_data: PhantomData<&'a str>,
 }
-impl<'a> Screen<'a> {
-    pub fn new(mut container: Container<'a>) -> Result<Self> {
+impl Screen{
+    pub fn new(mut container: Container) -> Result<Self> {
         let mut stdout = stdout();
         terminal::enable_raw_mode()?;
 
@@ -49,11 +47,10 @@ impl<'a> Screen<'a> {
             container,
             messages: Vec::new(),
             previos_lines: vec![String::new(); rows as usize],
-            _phantom_data: PhantomData,
         })
     }
 
-    pub fn handle_event(&mut self, event: Event) -> Container<'a> {
+    pub fn handle_event(&mut self, event: Event) -> Container {
         match event {
             Event::Resize((x, y)) => self.resize(x as usize, y as usize),
             Event::Key(modifier, key) => {

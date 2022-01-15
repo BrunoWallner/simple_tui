@@ -4,31 +4,31 @@ use crate::ui::style::{Style, StyleSheet};
 use crate::{Position, Size};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Input<'a> {
+pub struct Input {
     pub position: Position,
     pub size: Size,
 
     pub style: StyleSheet,
 
-    pub placeholder: &'a str,
+    pub placeholder: String,
     pub text: String,
 
     pub selected: bool,
     pub is_password: bool,
     pub block_tab: bool,
     pub cursor: bool,
-    pub submit_msg: Option<&'a str>,
-    pub on_change: &'a str,
+    pub submit_msg: Option<String>,
+    pub on_change: String,
 }
-impl<'a> Input<'a> {
-    pub fn new(placeholder: &'a str, message: &'a str, style: StyleSheet) -> Self {
+impl Input {
+    pub fn new<S: Into<String>>(placeholder: S, message: S, style: StyleSheet) -> Self {
         Self {
             position: Position { x: 0.0, y: 0.0 },
             size: Size { x: 0.0, y: 0.0 },
 
             style,
 
-            placeholder,
+            placeholder: placeholder.into(),
             text: String::new(),
 
             selected: false,
@@ -36,12 +36,12 @@ impl<'a> Input<'a> {
             block_tab: false,
             cursor: true,
             submit_msg: None,
-            on_change: message,
+            on_change: message.into(),
         }
     }
 
-    pub fn on_submit(mut self, msg: &'a str) -> Self {
-        self.submit_msg = Some(msg);
+    pub fn on_submit<S: Into<String>>(mut self, msg: S) -> Self {
+        self.submit_msg = Some(msg.into());
         self
     }
 
@@ -77,7 +77,7 @@ impl<'a> Input<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Input<'a> {
+impl Widget for Input {
     fn to_char_array(&self) -> Vec<Vec<char>> {
         let mut buffer: Vec<Vec<char>> =
             vec![vec![' '; self.size.x as usize]; self.size.y as usize];
@@ -124,30 +124,30 @@ impl<'a> Widget<'a> for Input<'a> {
         match event {
             Event::Key(_modifier, code) => match code {
                 KeyCode::Enter => {
-                    if let Some(msg) = self.submit_msg {
+                    if let Some(msg) = self.submit_msg.clone() {
                         return vec![vec![String::from(msg)]];
                     } else {
                         self.text.push('\n');
 
-                        return vec![vec![String::from(self.on_change), String::from(&self.text)]];
+                        return vec![vec![String::from(self.on_change.clone()), String::from(&self.text)]];
                     }
                 }
                 KeyCode::Tab => {
                     if !self.block_tab {
                         self.text.push('\t');
 
-                        return vec![vec![String::from(self.on_change), String::from(&self.text)]];
+                        return vec![vec![String::from(self.on_change.clone()), String::from(&self.text)]];
                     }
                 }
                 KeyCode::Char(c) => {
                     self.text.push(c);
 
-                    return vec![vec![String::from(self.on_change), String::from(&self.text)]];
+                    return vec![vec![String::from(self.on_change.clone()), String::from(&self.text)]];
                 }
                 KeyCode::Backspace => {
                     self.text.pop();
 
-                    return vec![vec![String::from(self.on_change), String::from(&self.text)]];
+                    return vec![vec![String::from(self.on_change.clone()), String::from(&self.text)]];
                 }
                 _ => (),
             },
@@ -181,7 +181,7 @@ impl<'a> Widget<'a> for Input<'a> {
     }
 }
 
-impl<'a> Style for Input<'a> {
+impl Style for Input {
     fn get_style(&self) -> StyleSheet {
         self.style
     }

@@ -4,7 +4,7 @@ use crate::ui::style::{Style, StyleSheet};
 use crate::{Position, Size};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Text<'a> {
+pub struct Text{
     text: String, // should only be changed with self.set_text because of dimensions
 
     pub position: Position,
@@ -12,12 +12,13 @@ pub struct Text<'a> {
 
     pub style: StyleSheet,
 
-    pub onclick_message: Option<&'a str>,
+    pub onclick_message: Option<String>,
     pub selected: bool,
 }
 
-impl<'a> Text<'a> {
-    pub fn new(text: &str, style: StyleSheet) -> Self {
+impl Text {
+    pub fn new<S: Into<String>>(text: S, style: StyleSheet) -> Self {
+        let text: String = text.into();
         let height = text.matches('\n').count() + 1;
         let width = text
             .split('\n')
@@ -42,8 +43,8 @@ impl<'a> Text<'a> {
         }
     }
 
-    pub fn on_click(mut self, message: &'a str) -> Self {
-        self.onclick_message = Some(message);
+    pub fn on_click<S: Into<String>>(mut self, message: S) -> Self {
+        self.onclick_message = Some(message.into());
         self
     }
 
@@ -68,7 +69,7 @@ impl<'a> Text<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Text<'a> {
+impl Widget for Text {
     fn to_char_array(&self) -> Vec<Vec<char>> {
         let mut buffer: Vec<Vec<char>> =
             vec![vec![' '; self.size.x as usize]; self.size.y as usize];
@@ -87,7 +88,7 @@ impl<'a> Widget<'a> for Text<'a> {
                     x += TAB_WIDTH;
                 }
                 char => {
-                    if (x as f32) < self.size.x && (y as f32) < self.size.y {
+                    if (x as f32) < self.size.x.floor() && (y as f32) < self.size.y.floor() {
                         buffer[y][x] = char;
                     }
                     x += 1;
@@ -104,7 +105,7 @@ impl<'a> Widget<'a> for Text<'a> {
                 MouseEvent { kind, .. } => {
                     match kind {
                         MouseEventKind::Down(_) => {
-                            if let Some(message) = self.onclick_message {
+                            if let Some(message) = self.onclick_message.clone() {
                                 return vec![vec![String::from(message)]];
                             }
                             // DEBUG !!!
@@ -144,7 +145,7 @@ impl<'a> Widget<'a> for Text<'a> {
     }
 }
 
-impl<'a> Style for Text<'a> {
+impl Style for Text {
     fn get_style(&self) -> StyleSheet {
         self.style
     }

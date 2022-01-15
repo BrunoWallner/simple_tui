@@ -10,14 +10,14 @@ pub enum ContainerKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Container<'a> {
+pub struct Container {
     pub position: Position,
     pub size: Size,
 
     pub style: StyleSheet,
     pub kind: ContainerKind,
 
-    pub content: Vec<Widgets<'a>>,
+    pub content: Vec<Widgets>,
     pub borders: [char; 12],
 
     pub selected: bool,
@@ -25,8 +25,8 @@ pub struct Container<'a> {
     pub tab_selector: bool,
     pub always_selected: bool,
 }
-impl<'a> Container<'a> {
-    pub fn new(kind: ContainerKind, content: Vec<Widgets<'a>>, style: StyleSheet) -> Self {
+impl Container {
+    pub fn new(kind: ContainerKind, content: Vec<Widgets>, style: StyleSheet) -> Self {
         Self {
             position: Position { x: 0.0, y: 0.0 },
             size: Size { x: 0.0, y: 0.0 },
@@ -44,7 +44,7 @@ impl<'a> Container<'a> {
         }
     }
 
-    pub fn push(&mut self, widget: Widgets<'a>) {
+    pub fn push(&mut self, widget: Widgets) {
         self.content.push(widget)
     }
 
@@ -78,7 +78,7 @@ impl<'a> Container<'a> {
     }
 }
 
-impl<'a> Widget<'a> for Container<'a> {
+impl Widget for Container {
     fn to_char_array(&self) -> Vec<Vec<char>> {
         if self.size.x >= 1.0 && self.size.y >= 1.0 {
             let mut array: Vec<Vec<char>> =
@@ -102,44 +102,46 @@ impl<'a> Widget<'a> for Container<'a> {
             }
 
             // draws border
-            let x_edge = array[0].len() - 1;
-            let y_edge = array.len() - 1;
-
-            if self.selected || self.always_selected {
-                // upper and bottom line
-                for x in 0..x_edge {
-                    array[0][x] = self.borders[4];
-                    array[y_edge][x] = self.borders[4]
+            if self.borders != [' '; 12] {
+                let x_edge = array[0].len() - 1;
+                let y_edge = array.len() - 1;
+    
+                if self.selected || self.always_selected {
+                    // upper and bottom line
+                    for x in 0..x_edge {
+                        array[0][x] = self.borders[4];
+                        array[y_edge][x] = self.borders[4]
+                    }
+    
+                    // right and left line
+                    for y in 0..y_edge {
+                        array[y][x_edge] = self.borders[5];
+                        array[y][0] = self.borders[5];
+                    }
+    
+                    array[0][0] = self.borders[0]; // upper left border
+                    array[0][x_edge] = self.borders[1]; // upper right border
+                    array[y_edge][x_edge] = self.borders[2]; // bottom right
+                    array[y_edge][0] = self.borders[3]; // bottom left
+                } else {
+                    let offset: usize = 6;
+                    // upper and bottom line
+                    for x in 0..x_edge {
+                        array[0][x] = self.borders[4 + offset];
+                        array[y_edge][x] = self.borders[4 + offset]
+                    }
+    
+                    // right and left line
+                    for y in 0..y_edge {
+                        array[y][x_edge] = self.borders[5 + offset];
+                        array[y][0] = self.borders[5 + offset];
+                    }
+    
+                    array[0][0] = self.borders[0 + offset]; // upper left border
+                    array[0][x_edge] = self.borders[1 + offset]; // upper right border
+                    array[y_edge][x_edge] = self.borders[2 + offset]; // bottom right
+                    array[y_edge][0] = self.borders[3 + offset]; // bottom left
                 }
-
-                // right and left line
-                for y in 0..y_edge {
-                    array[y][x_edge] = self.borders[5];
-                    array[y][0] = self.borders[5];
-                }
-
-                array[0][0] = self.borders[0]; // upper left border
-                array[0][x_edge] = self.borders[1]; // upper right border
-                array[y_edge][x_edge] = self.borders[2]; // bottom right
-                array[y_edge][0] = self.borders[3]; // bottom left
-            } else {
-                let offset: usize = 6;
-                // upper and bottom line
-                for x in 0..x_edge {
-                    array[0][x] = self.borders[4 + offset];
-                    array[y_edge][x] = self.borders[4 + offset]
-                }
-
-                // right and left line
-                for y in 0..y_edge {
-                    array[y][x_edge] = self.borders[5 + offset];
-                    array[y][0] = self.borders[5 + offset];
-                }
-
-                array[0][0] = self.borders[0 + offset]; // upper left border
-                array[0][x_edge] = self.borders[1 + offset]; // upper right border
-                array[y_edge][x_edge] = self.borders[2 + offset]; // bottom right
-                array[y_edge][0] = self.borders[3 + offset]; // bottom left
             }
 
             array
@@ -247,7 +249,7 @@ impl<'a> Widget<'a> for Container<'a> {
     }
 }
 
-impl<'a> Style for Container<'a> {
+impl Style for Container {
     fn get_style(&self) -> StyleSheet {
         self.style
     }
@@ -258,14 +260,14 @@ impl<'a> Style for Container<'a> {
 
     fn apply_style(&mut self) {
         // applies position and size for every sub content
-        let mut x_pos: f32 = 1.0; // starting at 1.0 because of borders
-        let mut y_pos: f32 = 1.0;
+        let mut x_pos: f32 = 0.0; // starting at 1.0 because of borders
+        let mut y_pos: f32 = 0.0;
         for c in self.content.iter_mut() {
             //let pos_x = c.get_style().position.0;
             //let pos_y = c.get_style().position.1;
             /* start padding */
-            x_pos += c.get_style().padding.0;
-            y_pos += c.get_style().padding.1;
+            x_pos += c.get_style().padding.x_start;
+            y_pos += c.get_style().padding.y_start;
 
             let width = c.get_style().width;
             let height = c.get_style().height;
@@ -273,13 +275,13 @@ impl<'a> Style for Container<'a> {
             let width: f32 = match width {
                 Length::Absolute(x) => x,
                 Length::Relative(x) => {
-                    (self.size.x - 1.0 - x_pos) * x // -2.0 bc of borders
+                    (self.size.x - 0.0 - x_pos) * x - c.get_style().padding.x_end
                 }
             };
             let height: f32 = match height {
                 Length::Absolute(y) => y,
                 Length::Relative(y) => {
-                    (self.size.y - 1.0 - y_pos) * y
+                    (self.size.y - 0.0 - y_pos) * y - c.get_style().padding.y_end
                 }
             };
 
@@ -295,16 +297,16 @@ impl<'a> Style for Container<'a> {
 
             /* creates room for next widget */
             /* end padding */
-            x_pos += c.get_style().padding.0;
-            y_pos += c.get_style().padding.1;
+            //x_pos += c.get_style().padding.x_end;
+            //y_pos += c.get_style().padding.y_end;
             
             match self.kind {
                 ContainerKind::Row => {
-                    y_pos = 1.0;
+                    y_pos = 0.0;
                     x_pos += width;
                 },  
                 ContainerKind::Column => {
-                    x_pos = 1.0;
+                    x_pos = 0.0;
                     y_pos += height;
                 }
             }

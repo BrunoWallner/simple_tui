@@ -13,7 +13,7 @@ pub trait Msg<M> {
     fn to_msg(field: String) -> M;
 }
 
-pub trait Widget<'a> {
+pub trait Widget {
     fn to_char_array(&self) -> Vec<Vec<char>>;
     fn handle_input_event(&mut self, event: Event) -> Vec<Vec<String>>;
 
@@ -30,13 +30,13 @@ pub trait Widget<'a> {
 // very dirty but best for end user i think
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Widgets<'a> {
-    Text(text::Text<'a>),
-    Button(button::Button<'a>),
-    Container(container::Container<'a>),
-    Input(input::Input<'a>),
+pub enum Widgets {
+    Text(text::Text),
+    Button(button::Button),
+    Container(container::Container),
+    Input(input::Input),
 }
-impl<'a> Widget<'a> for Widgets<'a> {
+impl Widget for Widgets{
     fn to_char_array(&self) -> Vec<Vec<char>> {
         match self {
             Widgets::Text(text) => text.to_char_array(),
@@ -107,7 +107,7 @@ impl<'a> Widget<'a> for Widgets<'a> {
     }
 }
 
-impl<'a> Style for Widgets<'a> {
+impl Style for Widgets {
     fn get_style(&self) -> StyleSheet {
         match self {
             Widgets::Text(text) => text.get_style(),

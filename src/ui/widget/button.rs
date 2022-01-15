@@ -4,37 +4,37 @@ use crate::ui::style::{Style, StyleSheet};
 use crate::{Position, Size};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Button<'a> {
+pub struct Button {
     pub position: Position,
     pub size: Size,
 
     style: StyleSheet,
 
     pub text: String,
-    pub onclick_message: Option<&'a str>,
+    pub onclick_message: Option<String>,
     pub selected: bool,
 }
-impl<'a> Button<'a> {
-    pub fn new(text: &str, style: StyleSheet) -> Self {
+impl Button {
+    pub fn new<S: Into<String>>(text: S, style: StyleSheet) -> Self {
         Self {
             position: Position { x: 0.0, y: 0.0 },
             size: Size { x: 0.0, y: 0.0 },
 
             style,
 
-            text: String::from(text),
+            text: text.into(),
             onclick_message: None,
             selected: false,
         }
     }
 
-    pub fn on_click(mut self, message: &'a str) -> Self {
-        self.onclick_message = Some(message);
+    pub fn on_click<S: Into<String>>(mut self, message: S) -> Self {
+        self.onclick_message = Some(message.into());
         self
     }
 }
 
-impl<'a> Widget<'a> for Button<'a> {
+impl Widget for Button {
     fn to_char_array(&self) -> Vec<Vec<char>> {
         let mut buffer: Vec<Vec<char>> =
             vec![vec![' '; self.size.x as usize]; self.size.y as usize];
@@ -98,7 +98,7 @@ impl<'a> Widget<'a> for Button<'a> {
             Event::Mouse(event) => match event {
                 MouseEvent { kind, .. } => match kind {
                     MouseEventKind::Down(_) => {
-                        if let Some(message) = self.onclick_message {
+                        if let Some(message) = self.onclick_message.clone() {
                             return vec![vec![String::from(message)]];
                         }
                     }
@@ -107,7 +107,7 @@ impl<'a> Widget<'a> for Button<'a> {
             },
             Event::Key(_modifier, code) => match code {
                 KeyCode::Enter => {
-                    if let Some(msg) = self.onclick_message {
+                    if let Some(msg) = self.onclick_message.clone() {
                         return vec![vec![String::from(msg)]];
                     }
                 }
@@ -127,7 +127,7 @@ impl<'a> Widget<'a> for Button<'a> {
     }
 }
 
-impl<'a> Style for Button<'a> {
+impl Style for Button {
     fn get_style(&self) -> StyleSheet {
         self.style
     }
