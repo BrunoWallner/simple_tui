@@ -8,7 +8,7 @@ use simple_tui::{
     ui::{
         style::{StyleSheet, Style, Length, Padding},
         screen::Screen,
-        widget::{Widgets, text::Text, container::{Container, ContainerKind}, input::Input, button::Button}
+        widget::{Widgets, text::Text, container::{Container, ContainerKind}, button::Button}
     },
     application::Application,
 };
@@ -73,7 +73,6 @@ impl Application for State {
                     }
                 )
             }
-            _ => (),
         }
     }
 
